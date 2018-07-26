@@ -32,7 +32,7 @@ public class AcceptanceTaskListener implements ExecutionListener {
 
 	public void notify(DelegateExecution execution){
 		logger.error("Doing AcceptanceTaskListener ..." + execution.getVariables());
-		sendSoapAcceptanceRequest("http://20.138.253.26:7688/PRPWebService/PRPService/WEB-INF/wsdl/PRPService.wsdl",null);
+		sendSoapAcceptanceRequest("http://20.138.253.26:7688/PRPWebService/PRPService/WEB-INF/wsdl/PRPService.wsdl",execution);
 
 	}
 
@@ -69,7 +69,7 @@ public class AcceptanceTaskListener implements ExecutionListener {
 				soapElement5.setAttribute("value", "C");
 				QName qn = new QName("CHDRSEL");
 				SOAPElement soapElement6 = bodyElement.addChildElement(qn);
-				soapElement6.addTextNode("00001708");
+				soapElement6.addTextNode((String) execution.getVariable("chdrsel"));
 				
 				QName date = new QName("Date");
 				SOAPElement bodyElement7 = bodyElement.addChildElement(date);

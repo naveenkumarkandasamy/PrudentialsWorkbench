@@ -64,7 +64,7 @@ public class RejectionTaskListener implements ExecutionListener {
 			soapElement5.setAttribute("value", "C");
 			QName qn = new QName("PAYDEL_CHDRNUM");
 			SOAPElement soapElement6 = bodyElement.addChildElement(qn);
-			soapElement6.addTextNode("00001708");
+			soapElement6.addTextNode((String) execution.getVariable("chdrsel"));
 			logger.error("\n Soap Request:\n");
 			sm.writeTo(System.out);
 			System.out.println();
