@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.activiti.pru.DatabaseReader;
 import com.activiti.pru.model.CashPaymentModel;
 
 @Controller
@@ -18,9 +19,10 @@ public class RestController {
 
 	static final Logger logger = Logger.getLogger(RestController.class);
 
-	@RequestMapping(value = "/cashpayments", method = RequestMethod.GET)
-	public @ResponseBody String helloWorld(HttpServletRequest request, HttpServletResponse response) {
-		return "Hello World";
+	@RequestMapping(value = "/getcashrecords", method = RequestMethod.GET)
+	public @ResponseBody void helloWorld(HttpServletRequest request, HttpServletResponse response) {
+			DatabaseReader reader = new DatabaseReader();
+			reader.readDB();
 	}	
 	
 	@RequestMapping(value = "/cashpayments", method = RequestMethod.POST)

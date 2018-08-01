@@ -32,7 +32,8 @@ public class AcceptanceTaskListener implements ExecutionListener {
 
 	public void notify(DelegateExecution execution){
 		logger.error("Doing AcceptanceTaskListener ..." + execution.getVariables());
-		sendSoapAcceptanceRequest("http://20.138.253.26:7688/PRPWebService/PRPService/WEB-INF/wsdl/PRPService.wsdl",execution);
+		
+		sendSoapAcceptanceRequest("http://20.138.253.26:7688/NBSWebService/NBSService",execution);
 
 	}
 
@@ -58,7 +59,7 @@ public class AcceptanceTaskListener implements ExecutionListener {
 				SOAPElement soapElement = bodyElement.addChildElement(bodyName1);
 				QName bodyName2=env.createQName("UserId","msp");
 				SOAPElement soapElement1 = soapElement.addChildElement(bodyName2);
-				soapElement1.setValue("Nitin Bhasin");
+				soapElement1.setValue("TCHAN");
 				QName bodyName3=env.createQName("UserPassword","msp");
 				SOAPElement soapElement3 = soapElement.addChildElement(bodyName3);
 				QName bodyName4=env.createQName("RequestParameters","msp");
@@ -85,7 +86,8 @@ public class AcceptanceTaskListener implements ExecutionListener {
 
 				URL endpoint = new URL(url);
 				SOAPMessage response = connection.call(sm, endpoint);
-				logger.error(response.getContentDescription());
+				logger.error("Response is :"+response.getSOAPPart().getEnvelope().getBody().getFault().getFaultCode());
+				response.writeTo(System.out);
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
