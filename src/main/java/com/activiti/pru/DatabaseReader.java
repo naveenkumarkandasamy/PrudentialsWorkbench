@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -19,8 +20,8 @@ public class DatabaseReader {
 	private static final Logger logger = LogManager.getLogger(DatabaseReader.class);
 	Properties prop = new Properties();
 	InputStream input = null;
-	ArrayList<CashPayment> cashArrayList=new ArrayList<CashPayment>();
-	
+	ArrayList<CashPayment> cashArrayList = new ArrayList<CashPayment>();
+
 	public void readDB() {
 		try {
 			input = this.getClass().getResourceAsStream("/META-INF/activiti-app/activiti-app.properties");
@@ -32,11 +33,11 @@ public class DatabaseReader {
 			Class.forName(myDriver);
 			Connection conn = DriverManager.getConnection(myUrl, prop.getProperty("datasource.username"),
 					prop.getProperty("datasource.password"));
-			String query = "SELECT * FROM cashpaymentdetails";
+			String selectQuery = "SELECT * FROM cashpaymentdetails where status=0";
 			Statement st = conn.createStatement();
-			ResultSet rs = st.executeQuery(query);
+			ResultSet rs = st.executeQuery(selectQuery);
 			while (rs.next()) {
-				CashPayment model=new CashPayment();
+				CashPayment model = new CashPayment();
 				model.setPolicyNumber(rs.getInt("policyNumber"));
 				model.setTransactionDate(rs.getString("transactionDate"));
 				model.setProductDescription(rs.getString("productDescription"));
@@ -45,11 +46,22 @@ public class DatabaseReader {
 				model.setTransactionType(rs.getString("transactionType"));
 				model.setChequeNumber(rs.getString("chequeNumber"));
 				model.setValueDate(rs.getString("valueDate"));
-				cashArrayList.add(model);				
-				logger.info("One Record is retrieved From the Database"+model);
+				cashArrayList.add(model);
+				logger.info("One Record is retrieved From the Database" + model);
 			}
 			CSVFileWriter.writeCsvFile("ILFile", cashArrayList);
+
+			String updateQuery = "update cashpaymentdetails set status = ? where status = ?";
+			PreparedStatement preparedStmt = conn.prepareStatement(updateQuery);
+			preparedStmt.setBoolean(1, Boolean.TRUE);
+			preparedStmt.setBoolean(2, Boolean.FALSE);
+
+			// execute the java preparedstatement
+			preparedStmt.executeUpdate();
+
+			preparedStmt.close();
 			st.close();
+			conn.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
