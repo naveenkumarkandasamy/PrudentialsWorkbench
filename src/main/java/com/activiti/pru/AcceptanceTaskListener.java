@@ -1,9 +1,9 @@
 package com.activiti.pru;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Properties;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.MessageFactory;
@@ -30,16 +30,24 @@ public class AcceptanceTaskListener implements ExecutionListener {
 
 	private static final Logger logger = LogManager.getLogger(AcceptanceTaskListener.class);
 
+	static Properties prop = new Properties();
+	InputStream input = null;
 	public void notify(DelegateExecution execution){
 		logger.error("Doing AcceptanceTaskListener ..." + execution.getVariables());
-		
-		sendSoapAcceptanceRequest("http://20.138.253.26:7688/NBSWebService/NBSService",execution);
-
+		String policyNumber=(String) execution.getVariable("chdrsel");
+		String date=new SoapEnquiryRequest().sendSoapEnquiryRequest("http://10.163.177.100:9081/LIFEWebSrv/NBSService",policyNumber);
+		sendSoapAcceptanceRequest("http://10.163.177.100:9081/LiFEWebServices/NBSService",execution,date,policyNumber);
 	}
-
-	public void sendSoapAcceptanceRequest(String url,DelegateExecution execution) {
+	
+	
+	
+	
+	public void sendSoapAcceptanceRequest(String url,DelegateExecution execution,String dateTime,String policyNumber) {
 		try {
 			try {
+				
+				input = this.getClass().getResourceAsStream("/META-INF/activiti-app/activiti-app.properties");
+				prop.load(input);
 				SOAPConnectionFactory sfc = SOAPConnectionFactory.newInstance();
 				SOAPConnection connection = sfc.createConnection();
 
@@ -59,26 +67,25 @@ public class AcceptanceTaskListener implements ExecutionListener {
 				SOAPElement soapElement = bodyElement.addChildElement(bodyName1);
 				QName bodyName2=env.createQName("UserId","msp");
 				SOAPElement soapElement1 = soapElement.addChildElement(bodyName2);
-				soapElement1.setValue("TCHAN");
+				soapElement1.setValue( prop.getProperty("UserId"));
 				QName bodyName3=env.createQName("UserPassword","msp");
 				SOAPElement soapElement3 = soapElement.addChildElement(bodyName3);
+				soapElement3.setValue( prop.getProperty("Password"));
 				QName bodyName4=env.createQName("RequestParameters","msp");
 				SOAPElement soapElement4 = soapElement.addChildElement(bodyName4);
 				QName bodyName5=env.createQName("RequestParameter","msp");
 				SOAPElement soapElement5 =soapElement4.addChildElement(bodyName5);
-				soapElement5.setAttribute("name", "USRTYPE");
-				soapElement5.setAttribute("value", "C");
+				soapElement5.setAttribute("name", prop.getProperty("AttributeKey"));
+				soapElement5.setAttribute("value", prop.getProperty("AttributeValue"));
 				QName qn = new QName("CHDRSEL");
 				SOAPElement soapElement6 = bodyElement.addChildElement(qn);
-				soapElement6.addTextNode((String) execution.getVariable("chdrsel"));
+				soapElement6.addTextNode(policyNumber);
 				
-				QName date = new QName("Date");
+				QName date = new QName("DATIME");
 				SOAPElement bodyElement7 = bodyElement.addChildElement(date);
 				QName datetime = new QName("CHDR_DATIME");
 				SOAPElement quotation = bodyElement7.addChildElement(datetime);
-				DateFormat formatter1;
-				formatter1 = new SimpleDateFormat("yyyy-mm-dd-hh.mm.ss.SSSSSS");
-				quotation.addTextNode(formatter1.format(new Date() ));
+				quotation.addTextNode(dateTime);
 
 				logger.error("\n Soap Request:\n");
 				sm.writeTo(System.out);
@@ -86,7 +93,6 @@ public class AcceptanceTaskListener implements ExecutionListener {
 
 				URL endpoint = new URL(url);
 				SOAPMessage response = connection.call(sm, endpoint);
-				logger.error("Response is :"+response.getSOAPPart().getEnvelope().getBody().getFault().getFaultCode());
 				response.writeTo(System.out);
 			} catch (Exception ex) {
 				ex.printStackTrace();
@@ -94,10 +100,21 @@ public class AcceptanceTaskListener implements ExecutionListener {
 		} catch (Exception ex) {
 			logger.error(ex.getLocalizedMessage());
 		}
+		finally {
+			if (input != null) {
+				try {
+					input.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	/*public static void main(String[] args) {
 		AcceptanceTaskListener t=new AcceptanceTaskListener();
-		t.sendSoapAcceptanceRequest(null,null);
+		String date=new SoapEnquiryRequest().sendSoapEnquiryRequest("http://10.163.177.100:9081/LIFEWebSrv/NBSService","00002198");
+		t.sendSoapAcceptanceRequest("http://10.163.177.100:9081/LiFEWebServices/NBSService",null,date);
+
 	}*/
 }
